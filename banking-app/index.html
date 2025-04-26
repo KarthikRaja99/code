@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple Banking Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 480px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .account-summary, .transactions, .transfer-form {
+            margin-top: 30px;
+        }
+        .transactions ul {
+            list-style: none;
+            padding: 0;
+        }
+        .transactions li {
+            background: #e9ecef;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            color: #333;
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Banking Application</h1>
+
+        <div id="login-section">
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="username">Username</label>
+                <input type="text" id="username" required />
+                <label for="password">Password</label>
+                <input type="password" id="password" required />
+                <button type="submit">Login</button>
+            </form>
+            <div id="login-error" class="error hidden">Invalid username or password.</div>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <h2>Account Summary</h2>
+            <div class="account-summary">
+                <p><strong>Account Holder:</strong> <span id="account-holder"></span></p>
+                <p><strong>Balance:</strong> $<span id="balance">0.00</span></p>
+            </div>
+
+            <div class="transactions">
+                <h3>Transactions</h3>
+                <ul id="transaction-list"></ul>
+            </div>
+
+            <div class="transfer-form">
+                <h3>Transfer Money</h3>
+                <form id="transfer-form">
+                    <label for="recipient">Recipient</label>
+                    <input type="text" id="recipient" required />
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" min="0.01" step="0.01" required />
+                    <button type="submit">Send</button>
+                </form>
+                <div id="transfer-message" class="hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const loginSection = document.getElementById('login-section');
+        const dashboard = document.getElementById('dashboard');
+        const loginError = document.getElementById('login-error');
+        const accountHolderSpan = document.getElementById('account-holder');
+        const balanceSpan = document.getElementById('balance');
+        const transactionList = document.getElementById('transaction-list');
+        const transferForm = document.getElementById('transfer-form');
+        const transferMessage = document.getElementById('transfer-message');
+
+        // Dummy user data
+        const user = {
+            username: 'user1',
+            password: 'password123',
+            name: 'John Doe',
+            balance: 5000.00,
+            transactions: [
+                { id: 1, description: 'Deposit', amount: 2000.00 },
+                { id: 2, description: 'Grocery Store', amount: -150.25 },
+                { id: 3, description: 'Electricity Bill', amount: -75.50 },
+                { id: 4, description: 'Salary', amount: 3500.00 }
+            ]
+        };
+
+        function formatCurrency(amount) {
+            return amount.toFixed(2);
+        }
+
+        function renderTransactions() {
+            transactionList.innerHTML = '';
+            user.transactions.forEach(tx => {
+                const li = document.createElement('li');
+                li.textContent = `${tx.description}: $${formatCurrency(tx.amount)}`;
+                transactionList.appendChild(li);
+            });
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (username === user.username && password === user.password) {
+                loginError.classList.add('hidden');
+                loginSection.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                accountHolderSpan.textContent = user.name;
+                balanceSpan.textContent = formatCurrency(user.balance);
+                renderTransactions();
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        transferForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const recipient = document.getElementById('recipient').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            transferMessage.className = 'hidden';
+            transferMessage.textContent = '';
+
+            if (!recipient) {
+                transferMessage.className = 'error';
+                transferMessage.textContent = 'Please enter a recipient.';
+                transferMessage.classList.remove('hidden');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                transferMessage.className = 'error';
+                transferMessage.textContent = 'Please enter a valid amount.';
+                transferMessage.classList.remove('hidden');
+                return;
+            }
+            if (amount > user.balance) {
+                transferMessage.className = 'error';
+                transferMessage.textContent = 'Insufficient balance.';
+                transferMessage.classList.remove('hidden');
+                return;
+            }
+
+            // Process transfer
+            user.balance -= amount;
+            user.transactions.push({ id: user.transactions.length + 1, description: `Transfer to ${recipient}`, amount: -amount });
+            balanceSpan.textContent = formatCurrency(user.balance);
+            renderTransactions();
+
+            transferMessage.className = 'success';
+            transferMessage.textContent = `Successfully transferred $${formatCurrency(amount)} to ${recipient}.`;
+            transferMessage.classList.remove('hidden');
+
+            transferForm.reset();
+        });
+    </script>
+</body>
+</html>
